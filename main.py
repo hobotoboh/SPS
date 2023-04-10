@@ -20,24 +20,59 @@ try:
            "referencePointA, "
            "referencePointB, "
            "referencePointC, "
-           "referencePointD "
+           "referencePointD, "
+           "draught, "
+           "sog "
            "FROM location ")
     df = pd.read_sql(sql, conn)
 
-    print(df.head(15))
+    # расчет валовой вместимости
+    df['gt'] = df.apply(
+        lambda row: ((row['referencePointA'] + row['referencePointB'])
+                    * (row['referencePointC'] + row['referencePointD'])
+                     * row['draught']/10)/2,
+        axis=1)
 
+    # нахождение мощности
+    df['impact'] = ''
+
+    df.loc[df['gt'] < 1000, 'impact'] = 23
+
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000), 'impact'] = 21
+
+    df.loc[(df['gt'] <= 5000) & (df['gt'] >= 3000), 'impact'] = 22
+
+    df.loc[(df['gt'] <= 15000) & (df['gt'] >= 5000), 'impact'] = 20
+
+    df.loc[(df['gt'] <= 50000) & (df['gt'] >= 15000), 'impact'] = 17
+
+    df.loc[df['gt'] > 50000, 'impact'] = 16
+
+    print(df.head(15))
     fig = px.scatter_mapbox(df,
                             lon=df['longitude'],
                             lat=df['latitude'],
                             zoom=5,
-                            size=df['referencePointA']/10,
+                            size=df['gt']/10,
                             size_max=8,
-                            color=df['mmsi'],
+                            color=df['gt'],
                             width=1200,
                             height=600,
                             title='AIS',
                             hover_name=df['mmsi'],
                             )
+
+
+    fig2 = px.scatter_mapbox(df,
+                            lon=df['longitude'],
+                            lat=df['latitude'],
+                            size=df['referencePointA']*10,
+                            color=df['mmsi'],
+                            hover_name=df['mmsi'],
+                            opacity= 0.5
+                            )
+
+    fig.add_trace(fig2.data[0])
 
     fig.update_layout(mapbox_style="open-street-map",
                       margin={"r" : 0,"t" : 50,"l" : 0,"b" : 10})
