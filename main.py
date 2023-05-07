@@ -49,72 +49,89 @@ try:
 
     df.loc[df['gt'] > 50000, 'impact'] = 16
 
+    data_to_empty_df = {
+        'longitude': 0,
+        'latitude': 0,
+    }
+
+    empty_df = pd.DataFrame([data_to_empty_df])
+
     print(df.head(8))
-    fig = px.scatter_mapbox(df,
-                            lon=df['longitude'],
-                            lat=df['latitude'],
+    fig = px.scatter_mapbox(empty_df,
+                            lon=empty_df['longitude'],
+                            lat=empty_df['latitude'],
                             zoom=5,
-                            size_max=1,
                             width=1200,
                             height=600,
-                            title='AIS',
-                            hover_name=df['mmsi'],
                             )
-
-
-    fig2 = px.scatter_mapbox(df,
-                            lon=df['longitude'],
-                            lat=df['latitude'],
-                            size=df['referencePointA']*10,
-                            hover_name=df['mmsi'],
-                            opacity= 0.5
-                            )
-
-    # fig.add_scattermapbox(
-    #     lat=df['latitude'],
-    #     lon=df['longitude'],
-    #     mode='markers',
-    #     marker=dict(symbol='ferry',
-    #                 size=10),
-    #     name='Ships',
-    #     hoverinfo='skip',
-    # )
-
-    fig.add_trace(fig2.data[0])
-
-    for i in range(len(df)):
-        fig.add_trace(go.Scattermapbox(
-            mode="lines",
-            lon=[df['longitude'][i], df['longitude'][i]+1],
-            lat=[df['latitude'][i], df['latitude'][i]+1],
-            marker={'size': 10},
-            name=f'Carbon Footprint of {df["mmsi"][i]}'))
 
     frames = []
 
+    fig.add_trace(go.Scattermapbox(
+        lat=df['latitude'],
+        lon=df['longitude'],
+        mode='markers',
+        marker=dict(symbol='ferry', size=10),
+        hoverinfo='skip'
+    ))
+
+    for i in range(len(df)):
+        fig.add_trace(go.Densitymapbox(
+            lat=[df['latitude'][i]],
+            lon=[df['longitude'][i]],
+            z=[df['impact'][i]],
+            radius=50,
+            hoverinfo='skip',
+            showscale=False,
+            visible=False
+        ))
+
     unique_times = df['time'].unique()
+    previous_data = pd.DataFrame()
 
     for time in unique_times:
 
         filtered_df = df[df['time'] == time]
 
+        if not previous_data.empty:
+            no_future_time_options = previous_data.loc[~previous_data['mmsi'].isin(filtered_df['mmsi'])]
+        else:
+            no_future_time_options = pd.DataFrame()
+
+        combined_df = pd.concat([filtered_df, no_future_time_options])
+        data = [
+            go.Densitymapbox(
+                lat=combined_df['latitude'],
+                lon=combined_df['longitude'],
+                z=combined_df['impact']*10,
+                radius=10,
+                hoverinfo='skip',
+                showscale=False,
+            ),
+
+            go.Scattermapbox(
+                lat=combined_df['latitude'],
+                lon=combined_df['longitude'],
+                mode='markers',
+                marker=dict(symbol='ferry', size=10),
+                hovertemplate=(
+                        '<b>MMSI</b>: %{customdata[0]}<br>' +
+                        '<b>latitude</b>: %{customdata[1]:.5f}<br>' +
+                        '<b>longitude</b>: %{customdata[2]:.5f}<br>'
+                ),
+                customdata=df[['mmsi', 'latitude', 'longitude']].values,
+
+            ),
+        ]
+
         frame = go.Frame(
             name=str(time),
-            data=[
-                # Add the data traces for the current frame
-                # You can modify this part based on your specific requirements
-                go.Scattermapbox(
-                    lat=filtered_df['latitude'],
-                    lon=filtered_df['longitude'],
-                    mode='markers',
-                    marker=dict(symbol='ferry', size=10),
-                    name='Ships',
-                    hoverinfo='skip',
-                )
-            ]
+            data=data,
+
         )
 
-        # Add the frame to the frames list
+        previous_data = combined_df
+
         frames.append(frame)
 
     sliders = [
@@ -133,9 +150,8 @@ try:
     ]
 
     fig.update_layout(
-        title='По России на поезде',
+        title='Ааааааааа',
         legend_orientation="h",
-        mapbox_style="open-street-map",
         updatemenus=[
             dict(
                 direction="left",
@@ -166,7 +182,6 @@ try:
         sliders=sliders,
     )
 
-    # Add the frames to the figure
     fig.frames = frames
 
     map_center = go.layout.mapbox.Center(lat=60, lon=26.5)
