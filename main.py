@@ -97,7 +97,6 @@ try:
     df['carbon_footprint_SO2'] = ''
     df['carbon_footprint'] = ''
 
-
     # нахождение выбросов загрязняющих веществ для судов с режимом прохода по Морскому каналу
     df.loc[(df['gt'] < 1000) & (df['power'] == 480), 'carbon_footprint_NOx'] = 13
     df.loc[(df['gt'] < 1000) & (df['power'] == 480), 'carbon_footprint_CO'] = 8
