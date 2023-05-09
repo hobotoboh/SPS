@@ -1,7 +1,3 @@
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-# Press Ctrl+F8 to toggle the breakpoint.
-
 import plotly.graph_objs as go
 import plotly.express as px
 import pandas as pd
@@ -14,7 +10,8 @@ token = open("key.mapbox_token").read()
 try:
     # получение данных из БД
     conn = sqlite3.connect(filename)
-    sql = ("SELECT mmsi, "
+
+    sql = ("SELECT DISTINCT mmsi, "
            "longitude, "
            "latitude, "
            "referencePointA, "
@@ -25,6 +22,23 @@ try:
            "sog,"
            "time "
            "FROM location ")
+
+
+    """sql = ("SELECT DISTINCT ais1.mmsi, "
+           "ais1.longitude AS longitude, "
+           "ais1.latitude AS latitude, "
+           "Vessels.referencePointA, "
+           "Vessels.referencePointB, "
+           "Vessels.referencePointC, "
+           "Vessels.referencePointD, "
+           "Vessels.draught, "
+           "ais1.sog, "
+           "ais1.timestampExternal AS time "
+           "FROM ais1, Vessels "
+           "WHERE ais1.mmsi = Vessels.mmsi "
+           "LIMIT 10"
+           "")"""
+
     df = pd.read_sql(sql, conn)
 
     # расчет валовой вместимости
@@ -37,17 +51,21 @@ try:
     # нахождение мощности
     df['impact'] = ''
 
-    df.loc[df['gt'] < 1000, 'impact'] = 23
+    df.loc[(df['gt'] < 1000) & (df['sog'] != 0), 'impact'] = 23
 
-    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000), 'impact'] = 21
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['sog'] != 0), 'impact'] = 21
 
-    df.loc[(df['gt'] <= 5000) & (df['gt'] >= 3000), 'impact'] = 22
+    df.loc[(df['gt'] <= 5000) & (df['gt'] >= 3000) & (df['sog'] != 0), 'impact'] = 22
 
-    df.loc[(df['gt'] <= 15000) & (df['gt'] >= 5000), 'impact'] = 20
+    df.loc[(df['gt'] <= 15000) & (df['gt'] >= 5000) & (df['sog'] != 0), 'impact'] = 20
 
-    df.loc[(df['gt'] <= 50000) & (df['gt'] >= 15000), 'impact'] = 17
+    df.loc[(df['gt'] <= 50000) & (df['gt'] >= 15000) & (df['sog'] != 0), 'impact'] = 17
 
-    df.loc[df['gt'] > 50000, 'impact'] = 16
+    df.loc[(df['gt'] > 50000) & (df['sog'] != 0), 'impact'] = 16
+
+
+
+
 
     data_to_empty_df = {
         'longitude': 0,
@@ -56,13 +74,12 @@ try:
 
     empty_df = pd.DataFrame([data_to_empty_df])
 
-    print(df.head(8))
+    print(df.head(50))
+    print(df.tail(50))
     fig = px.scatter_mapbox(empty_df,
                             lon=empty_df['longitude'],
                             lat=empty_df['latitude'],
                             zoom=5,
-                            width=1200,
-                            height=600,
                             )
 
     frames = []
@@ -72,22 +89,23 @@ try:
         lon=df['longitude'],
         mode='markers',
         marker=dict(symbol='ferry', size=10),
-        hoverinfo='skip'
+        hoverinfo='skip',
+        showlegend=False,
     ))
 
-    for i in range(len(df)):
-        fig.add_trace(go.Densitymapbox(
-            lat=[df['latitude'][i]],
-            lon=[df['longitude'][i]],
-            z=[df['impact'][i]],
-            radius=50,
-            hoverinfo='skip',
-            showscale=False,
-            visible=False
+    fig.add_trace(go.Densitymapbox(
+        lat=df['latitude'],
+        lon=df['longitude'],
+        z=df['impact'],
+        radius=50,
+        hoverinfo='skip',
+        showscale=False,
+        visible=False
         ))
 
     unique_times = df['time'].unique()
     previous_data = pd.DataFrame()
+    all_results = pd.DataFrame()
 
     for time in unique_times:
 
@@ -99,21 +117,15 @@ try:
             no_future_time_options = pd.DataFrame()
 
         combined_df = pd.concat([filtered_df, no_future_time_options])
-        data = [
-            go.Densitymapbox(
-                lat=combined_df['latitude'],
-                lon=combined_df['longitude'],
-                z=combined_df['impact']*10,
-                radius=10,
-                hoverinfo='skip',
-                showscale=False,
-            ),
+        all_results = pd.concat([all_results, combined_df]).drop_duplicates()
 
+        dataShips = [
             go.Scattermapbox(
                 lat=combined_df['latitude'],
                 lon=combined_df['longitude'],
                 mode='markers',
                 marker=dict(symbol='ferry', size=10),
+                opacity=0.8,
                 hovertemplate=(
                         '<b>MMSI</b>: %{customdata[0]}<br>' +
                         '<b>latitude</b>: %{customdata[1]:.5f}<br>' +
@@ -124,10 +136,17 @@ try:
             ),
         ]
 
+        dataFootprint = [go.Densitymapbox(
+            lat=all_results['latitude'],
+            lon=all_results['longitude'],
+            z=all_results['impact'],
+            radius=10,
+            showscale=False
+        )]
+
         frame = go.Frame(
             name=str(time),
-            data=data,
-
+            data=dataFootprint + dataShips,
         )
 
         previous_data = combined_df
@@ -186,12 +205,12 @@ try:
 
     map_center = go.layout.mapbox.Center(lat=60, lon=26.5)
 
-    fig.update_layout(mapbox = {
+    fig.update_layout(mapbox={
         'accesstoken': token,
         'style': "outdoors",
         'center': map_center,
         'zoom': 6.5},
-                      margin={"r" : 0,"t" : 50,"l" : 0,"b" : 10})
+        margin={"r": 0, "t": 50, "l": 0, "b": 10})
 
     # Отображаем карту
     fig.show()
