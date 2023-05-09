@@ -49,23 +49,189 @@ try:
         axis=1)
 
     # нахождение мощности
-    df['impact'] = ''
+    df['power'] = ''
 
-    df.loc[(df['gt'] < 1000) & (df['sog'] != 0), 'impact'] = 23
+    # мощность главных двигателей при режиме прохода по Морскому каналу
+    df.loc[(df['gt'] < 1000) & (df['latitude'] < 60.03)
+           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 480
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['latitude'] < 60.03)
+           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 1000
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['latitude'] < 60.03)
+           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 1700
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['latitude'] < 60.03)
+           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 3500
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['latitude'] < 60.03)
+           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 7500
+    df.loc[(df['gt'] > 50000) & (df['latitude'] < 60.03)
+           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 25000
 
-    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['sog'] != 0), 'impact'] = 21
+    # мощность главных двигателей при режиме малого хода
+    df.loc[(df['gt'] < 1000) & (df['power'] == '') & (df['sog'] > 1), 'power'] = 150
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['power'] == '') & (df['sog'] > 1), 'power'] = 310
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['power'] == '') & (df['sog'] > 1), 'power'] = 530
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['power'] == '') & (df['sog'] > 1), 'power'] = 1750
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['power'] == '') & (df['sog'] > 1), 'power'] = 3750
+    df.loc[(df['gt'] > 50000) & (df['power'] == '') & (df['sog'] > 1), 'power'] = 12500
 
-    df.loc[(df['gt'] <= 5000) & (df['gt'] >= 3000) & (df['sog'] != 0), 'impact'] = 22
+    # мощность главных двигателей при режиме маневрирования
+    df.loc[(df['gt'] < 1000) & (df['sog'] < 1) & (df['sog'] >= 0.4), 'power'] = 90
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['sog'] < 1) & (df['sog'] >= 0.4), 'power'] = 190
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['sog'] < 1) & (df['sog'] >= 0.4), 'power'] = 320
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['sog'] < 1) & (df['sog'] >= 0.4), 'power'] = 1050
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['sog'] < 1) & (df['sog'] >= 0.4), 'power'] = 1500
+    df.loc[(df['gt'] > 50000) & (df['sog'] < 1) & (df['sog'] >= 0.4), 'power'] = 5000
 
-    df.loc[(df['gt'] <= 15000) & (df['gt'] >= 5000) & (df['sog'] != 0), 'impact'] = 20
+    # мощность вспомогательных двигателей при режиме стоянки судна
+    df.loc[(df['gt'] < 1000) & (df['sog'] < 0.4) & (df['sog'] >= 0), 'power'] = 80
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['sog'] < 0.4) & (df['sog'] >= 0), 'power'] = 150
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['sog'] < 0.4) & (df['sog'] >= 0), 'power'] = 300
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['sog'] < 0.4) & (df['sog'] >= 0), 'power'] = 500
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['sog'] < 0.4) & (df['sog'] >= 0), 'power'] = 700
+    df.loc[(df['gt'] > 50000) & (df['sog'] < 0.4) & (df['sog'] >= 0), 'power'] = 3000
 
-    df.loc[(df['gt'] <= 50000) & (df['gt'] >= 15000) & (df['sog'] != 0), 'impact'] = 17
+    # параметры углеродного следа
+    df['carbon_footprint_NOx'] = ''
+    df['carbon_footprint_CO'] = ''
+    df['carbon_footprint_CH'] = ''
+    df['carbon_footprint_C'] = ''
+    df['carbon_footprint_SO2'] = ''
+    df['carbon_footprint'] = ''
 
-    df.loc[(df['gt'] > 50000) & (df['sog'] != 0), 'impact'] = 16
+
+    # нахождение выбросов загрязняющих веществ для судов с режимом прохода по Морскому каналу
+    df.loc[(df['gt'] < 1000) & (df['power'] == 480), 'carbon_footprint_NOx'] = 13
+    df.loc[(df['gt'] < 1000) & (df['power'] == 480), 'carbon_footprint_CO'] = 8
+    df.loc[(df['gt'] < 1000) & (df['power'] == 480), 'carbon_footprint_CH'] = 1.3
+    df.loc[(df['gt'] < 1000) & (df['power'] == 480), 'carbon_footprint_C'] = 1.4
+    df.loc[(df['gt'] < 1000) & (df['power'] == 480), 'carbon_footprint_SO2'] = 0.75
+
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['power'] == 1000), 'carbon_footprint_NOx'] = 14
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['power'] == 1000), 'carbon_footprint_CO'] = 5
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['power'] == 1000), 'carbon_footprint_CH'] = 1
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['power'] == 1000), 'carbon_footprint_C'] = 1.3
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['power'] == 1000), 'carbon_footprint_SO2'] = 0.75
+
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['power'] == 1700), 'carbon_footprint_NOx'] = 14
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['power'] == 1700), 'carbon_footprint_CO'] = 5
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['power'] == 1700), 'carbon_footprint_CH'] = 1
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['power'] == 1700), 'carbon_footprint_C'] = 1.3
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['power'] == 1700), 'carbon_footprint_SO2'] = 0.69
+
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['power'] == 3500), 'carbon_footprint_NOx'] = 16
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['power'] == 3500), 'carbon_footprint_CO'] = 3
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['power'] == 3500), 'carbon_footprint_CH'] = 0.4
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['power'] == 3500), 'carbon_footprint_C'] = 0.7
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['power'] == 3500), 'carbon_footprint_SO2'] = 0.63
+
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['power'] == 7500), 'carbon_footprint_NOx'] = 17
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['power'] == 7500), 'carbon_footprint_CO'] = 1
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['power'] == 7500), 'carbon_footprint_CH'] = 0.3
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['power'] == 7500), 'carbon_footprint_C'] = 0.5
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['power'] == 7500), 'carbon_footprint_SO2'] = 0.57
+
+    df.loc[(df['gt'] > 50000) & (df['power'] == 25000), 'carbon_footprint_NOx'] = 17
+    df.loc[(df['gt'] > 50000) & (df['power'] == 25000), 'carbon_footprint_CO'] = 0.4
+    df.loc[(df['gt'] > 50000) & (df['power'] == 25000), 'carbon_footprint_CH'] = 0.17
+    df.loc[(df['gt'] > 50000) & (df['power'] == 25000), 'carbon_footprint_C'] = 0.1
+    df.loc[(df['gt'] > 50000) & (df['power'] == 25000), 'carbon_footprint_SO2'] = 0.51
+
+    # нахождение выбросов загрязняющих веществ для судов с режимом малого хода и маневрирования судов
+    df.loc[(df['gt'] < 1000) & ((df['power'] == 150) | (df['power'] == 90)), 'carbon_footprint_NOx'] = 25
+    df.loc[(df['gt'] < 1000) & ((df['power'] == 150) | (df['power'] == 90)), 'carbon_footprint_CO'] = 18
+    df.loc[(df['gt'] < 1000) & ((df['power'] == 150) | (df['power'] == 90)), 'carbon_footprint_CH'] = 3.3
+    df.loc[(df['gt'] < 1000) & ((df['power'] == 150) | (df['power'] == 90)), 'carbon_footprint_C'] = 1.6
+    df.loc[(df['gt'] < 1000) & ((df['power'] == 150) | (df['power'] == 90)), 'carbon_footprint_SO2'] = 0.75
+
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000)
+           & ((df['power'] == 310) | (df['power'] == 190)), 'carbon_footprint_NOx'] = 28
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000)
+           & ((df['power'] == 310) | (df['power'] == 190)), 'carbon_footprint_CO'] = 11
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000)
+           & ((df['power'] == 310) | (df['power'] == 190)), 'carbon_footprint_CH'] = 2.2
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000)
+           & ((df['power'] == 310) | (df['power'] == 190)), 'carbon_footprint_C'] = 1.5
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000)
+           & ((df['power'] == 310) | (df['power'] == 190)), 'carbon_footprint_SO2'] = 0.75
+
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000)
+           & ((df['power'] == 530) | (df['power'] == 320)), 'carbon_footprint_NOx'] = 28
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000)
+           & ((df['power'] == 530) | (df['power'] == 320)), 'carbon_footprint_CO'] = 11
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000)
+           & ((df['power'] == 530) | (df['power'] == 320)), 'carbon_footprint_CH'] = 2.2
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000)
+           & ((df['power'] == 530) | (df['power'] == 320)), 'carbon_footprint_C'] = 1.5
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000)
+           & ((df['power'] == 530) | (df['power'] == 320)), 'carbon_footprint_SO2'] = 0.69
+
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000)
+           & ((df['power'] == 1750) | (df['power'] == 1050)), 'carbon_footprint_NOx'] = 31
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000)
+           & ((df['power'] == 1750) | (df['power'] == 1050)), 'carbon_footprint_CO'] = 7
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000)
+           & ((df['power'] == 1750) | (df['power'] == 1050)), 'carbon_footprint_CH'] = 1
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000)
+           & ((df['power'] == 1750) | (df['power'] == 1050)), 'carbon_footprint_C'] = 0.8
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000)
+           & ((df['power'] == 1750) | (df['power'] == 1050)), 'carbon_footprint_SO2'] = 0.63
+
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000)
+           & ((df['power'] == 3750) | (df['power'] == 1500)), 'carbon_footprint_NOx'] = 33
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000)
+           & ((df['power'] == 3750) | (df['power'] == 1500)), 'carbon_footprint_CO'] = 2.3
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000)
+           & ((df['power'] == 3750) | (df['power'] == 1500)), 'carbon_footprint_CH'] = 0.6
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000)
+           & ((df['power'] == 3750) | (df['power'] == 1500)), 'carbon_footprint_C'] = 0.5
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000)
+           & ((df['power'] == 3750) | (df['power'] == 1500)), 'carbon_footprint_SO2'] = 0.57
+
+    df.loc[(df['gt'] > 50000) & ((df['power'] == 12500) | (df['power'] == 5000)), 'carbon_footprint_NOx'] = 35
+    df.loc[(df['gt'] > 50000) & ((df['power'] == 12500) | (df['power'] == 5000)), 'carbon_footprint_CO'] = 0.9
+    df.loc[(df['gt'] > 50000) & ((df['power'] == 12500) | (df['power'] == 5000)), 'carbon_footprint_CH'] = 0.4
+    df.loc[(df['gt'] > 50000) & ((df['power'] == 12500) | (df['power'] == 5000)), 'carbon_footprint_C'] = 0.1
+    df.loc[(df['gt'] > 50000) & ((df['power'] == 12500) | (df['power'] == 5000)), 'carbon_footprint_SO2'] = 0.51
+
+    # нахождение выбросов загрязняющих веществ на режиме стоянки судов со вспомогательными двигателями
+    df.loc[(df['gt'] < 1000) & (df['power'] == 80), 'carbon_footprint_NOx'] = 11
+    df.loc[(df['gt'] < 1000) & (df['power'] == 80), 'carbon_footprint_CO'] = 8
+    df.loc[(df['gt'] < 1000) & (df['power'] == 80), 'carbon_footprint_CH'] = 1.5
+    df.loc[(df['gt'] < 1000) & (df['power'] == 80), 'carbon_footprint_C'] = 1.1
+    df.loc[(df['gt'] < 1000) & (df['power'] == 80), 'carbon_footprint_SO2'] = 0.75
+
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['power'] == 150), 'carbon_footprint_NOx'] = 12
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['power'] == 150), 'carbon_footprint_CO'] = 6
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['power'] == 150), 'carbon_footprint_CH'] = 1.3
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['power'] == 150), 'carbon_footprint_C'] = 1.1
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['power'] == 150), 'carbon_footprint_SO2'] = 0.75
+
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['power'] == 300), 'carbon_footprint_NOx'] = 14
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['power'] == 300), 'carbon_footprint_CO'] = 5
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['power'] == 300), 'carbon_footprint_CH'] = 1.3
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['power'] == 300), 'carbon_footprint_C'] = 1.1
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['power'] == 300), 'carbon_footprint_SO2'] = 0.69
+
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['power'] == 500), 'carbon_footprint_NOx'] = 16
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['power'] == 500), 'carbon_footprint_CO'] = 4
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['power'] == 500), 'carbon_footprint_CH'] = 0.7
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['power'] == 500), 'carbon_footprint_C'] = 0.6
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['power'] == 500), 'carbon_footprint_SO2'] = 0.63
+
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['power'] == 700), 'carbon_footprint_NOx'] = 17
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['power'] == 700), 'carbon_footprint_CO'] = 3
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['power'] == 700), 'carbon_footprint_CH'] = 0.4
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['power'] == 700), 'carbon_footprint_C'] = 0.4
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['power'] == 700), 'carbon_footprint_SO2'] = 0.57
+
+    df.loc[(df['gt'] > 50000) & (df['power'] == 3000), 'carbon_footprint_NOx'] = 17
+    df.loc[(df['gt'] > 50000) & (df['power'] == 3000), 'carbon_footprint_CO'] = 1.5
+    df.loc[(df['gt'] > 50000) & (df['power'] == 3000), 'carbon_footprint_CH'] = 0.25
+    df.loc[(df['gt'] > 50000) & (df['power'] == 3000), 'carbon_footprint_C'] = 0.1
+    df.loc[(df['gt'] > 50000) & (df['power'] == 3000), 'carbon_footprint_SO2'] = 0.51
 
 
-
-
+    df['carbon_footprint'] = df['carbon_footprint_CO'] + df['carbon_footprint_C'] + df[
+        'carbon_footprint_CH'] + df['carbon_footprint_SO2'] + df['carbon_footprint_NOx']
 
     data_to_empty_df = {
         'longitude': 0,
@@ -96,7 +262,7 @@ try:
     fig.add_trace(go.Densitymapbox(
         lat=df['latitude'],
         lon=df['longitude'],
-        z=df['impact'],
+        z=df['carbon_footprint'],
         radius=50,
         hoverinfo='skip',
         showscale=False,
@@ -139,9 +305,20 @@ try:
         dataFootprint = [go.Densitymapbox(
             lat=all_results['latitude'],
             lon=all_results['longitude'],
-            z=all_results['impact'],
+            z=all_results['carbon_footprint'],
             radius=10,
-            showscale=False
+            showscale=False,
+            hovertemplate=(
+                    '<b>NOx</b>: %{customdata[0]}<br>' +
+                    '<b>CO</b>: %{customdata[1]:.2f}<br>' +
+                    '<b>CH</b>: %{customdata[2]:.2f}<br>' +
+                    '<b>C</b>: %{customdata[3]:.2f}<br>' +
+                    '<b>SO2</b>: %{customdata[4]:.2f}<br>' +
+                    '<b>Overall</b>: %{customdata[5]:.2f}<br>'
+            ),
+            customdata=df[['carbon_footprint_NOx', 'carbon_footprint_CO',
+                           'carbon_footprint_CH', 'carbon_footprint_C',
+                           'carbon_footprint_SO2', 'carbon_footprint']].values,
         )]
 
         frame = go.Frame(
