@@ -2,6 +2,7 @@ import plotly.graph_objs as go
 import plotly.express as px
 import pandas as pd
 import sqlite3
+import datetime
 
 print('Получение данных...')
 filename = r"A:\Files\Diploma\AIS_10_01_2021.db"
@@ -269,6 +270,7 @@ try:
         ))
 
     unique_times = df['time'].unique()
+    unique_times = sorted(unique_times)
     previous_data = pd.DataFrame()
     all_results = pd.DataFrame()
 
@@ -320,8 +322,11 @@ try:
                            'carbon_footprint_SO2', 'carbon_footprint']].values,
         )]
 
+        epoch_time = datetime.datetime.fromtimestamp(time/1000)
+        time_formatted = epoch_time.strftime('%Y-%m-%d %H:%M:%S')
+
         frame = go.Frame(
-            name=str(time),
+            name=str(time_formatted),
             data=dataFootprint + dataShips,
         )
 
@@ -332,7 +337,7 @@ try:
     sliders = [
         dict(
             active=0,
-            pad={"t": 50},
+            pad={"b": 50, "r": 50, "l": 50},
             steps=[
                 dict(
                     method="animate",
@@ -345,7 +350,6 @@ try:
     ]
 
     fig.update_layout(
-        title='Ааааааааа',
         legend_orientation="h",
         updatemenus=[
             dict(
@@ -356,22 +360,6 @@ try:
                 y=0,
                 yanchor="top",
                 showactive=False,
-                type="buttons",
-                buttons=[
-                    dict(label="►", method="animate", args=[None, {"fromcurrent": True}]),
-                    dict(
-                        label="❚❚",
-                        method="animate",
-                        args=[
-                            [None],
-                            {
-                                "frame": {"duration": 0, "redraw": False},
-                                "mode": "immediate",
-                                "transition": {"duration": 0},
-                            },
-                        ],
-                    ),
-                ],
             )
         ],
         sliders=sliders,
