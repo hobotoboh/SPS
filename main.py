@@ -4,7 +4,6 @@ import pandas as pd
 import sqlite3
 import datetime
 
-print('Получение данных...')
 filename = r"A:\Files\Diploma\AIS_10_01_2021.db"
 token = open("key.mapbox_token").read()
 
@@ -12,7 +11,7 @@ try:
     # получение данных из БД
     conn = sqlite3.connect(filename)
 
-    sql = ("SELECT DISTINCT mmsi, "
+    """sql = ("SELECT DISTINCT mmsi, "
            "longitude, "
            "latitude, "
            "referencePointA, "
@@ -22,10 +21,24 @@ try:
            "draught, "
            "sog,"
            "time "
-           "FROM location ")
+           "FROM location ")"""
 
+    print("NOTE! Date must be in this format 'YYYY-MM-DD'")
+    startdate = input("Enter the first date: ")
+    enddate = input("Enter the second date: ")
 
-    """sql = ("SELECT DISTINCT ais1.mmsi, "
+    startdate = datetime.datetime.strptime(startdate, "%Y-%m-%d")
+    enddate = datetime.datetime.strptime(enddate, "%Y-%m-%d")
+
+    enddate += datetime.timedelta(days=1, milliseconds=-1)
+
+    startdate = int(startdate.timestamp()) * 1000
+    enddate = int(enddate.timestamp()) * 1000
+
+    startdate = 1620731537000
+    enddate = 1622373137000
+
+    sql = ("SELECT DISTINCT ais1.mmsi, "
            "ais1.longitude AS longitude, "
            "ais1.latitude AS latitude, "
            "Vessels.referencePointA, "
@@ -37,10 +50,14 @@ try:
            "ais1.timestampExternal AS time "
            "FROM ais1, Vessels "
            "WHERE ais1.mmsi = Vessels.mmsi "
-           "LIMIT 10"
-           "")"""
+           "AND ais1.timestampExternal >= :startdate "
+           "AND ais1.timestampExternal <= :enddate "
+           ""
+           "LIMIT 1000 "
+           "")
 
-    df = pd.read_sql(sql, conn)
+    print('Получение данных...')
+    df = pd.read_sql(sql, conn, params={"startdate": startdate, "enddate": enddate})
 
     # расчет валовой вместимости
     df['gt'] = df.apply(
@@ -240,8 +257,8 @@ try:
 
     empty_df = pd.DataFrame([data_to_empty_df])
 
-    print(df.head(50))
-    print(df.tail(50))
+    print(df['time'].tail(1))
+
     fig = px.scatter_mapbox(empty_df,
                             lon=empty_df['longitude'],
                             lat=empty_df['latitude'],
@@ -269,10 +286,18 @@ try:
         visible=False
         ))
 
+    df['time'] = df['time'].divide(10000)
+    df['time'] = df['time'].round(0)
+    df['time'] = df['time'].multiply(10)
+
     unique_times = df['time'].unique()
     unique_times = sorted(unique_times)
     previous_data = pd.DataFrame()
     all_results = pd.DataFrame()
+
+    epoch_time = datetime.datetime.fromtimestamp(1683749137)
+    time_formatted = epoch_time.strftime('%Y-%m-%d %H:%M')
+    print(time_formatted)
 
     for time in unique_times:
 
@@ -299,7 +324,6 @@ try:
                         '<b>longitude</b>: %{customdata[2]:.5f}<br>'
                 ),
                 customdata=df[['mmsi', 'latitude', 'longitude']].values,
-
             ),
         ]
 
@@ -322,8 +346,8 @@ try:
                            'carbon_footprint_SO2', 'carbon_footprint']].values,
         )]
 
-        epoch_time = datetime.datetime.fromtimestamp(time/1000)
-        time_formatted = epoch_time.strftime('%Y-%m-%d %H:%M:%S')
+        epoch_time = datetime.datetime.fromtimestamp(time)
+        time_formatted = epoch_time.strftime('%Y-%m-%d %H:%M')
 
         frame = go.Frame(
             name=str(time_formatted),
@@ -378,6 +402,8 @@ try:
 
     # Отображаем карту
     fig.show()
+
+
 
     print("График построен")
 
