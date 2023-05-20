@@ -1,4 +1,3 @@
-import plotly.graph_objs as go
 import plotly.express as px
 import pandas as pd
 import sqlite3
@@ -8,6 +7,7 @@ import gross_tonnage
 import map_building
 import power
 import carbon_footprint
+import cf_statistic_bar
 
 filename = r"A:\Files\Diploma\AIS_10_01_2021.db"
 token = open("key.mapbox_token").read()
@@ -55,15 +55,6 @@ try:
     df['time'] = df['time'].round(0)
     df['time'] = df['time'].multiply(10)
 
-    gross_tonnage.calculation(df)
-    power.finding_power(df)
-
-    carbon_footprint.carbon_footprint_parameters(df)
-    carbon_footprint.cf_Sea_Canal(df)
-    carbon_footprint.cf_low_speed_and_maneuvering(df)
-    carbon_footprint.cf_mooring(df)
-    carbon_footprint.cf_calculation(df)
-
     # Карта судов и углеродного следа
     data_to_empty_df = {
         'longitude': 0,
@@ -78,87 +69,34 @@ try:
                             zoom=5,
                             )
 
+    all_results = pd.DataFrame()
+
+# Расчет валовой вместимости и мощности судов
+    gross_tonnage.calculation(df)
+    power.finding_power(df)
+
+# Расчет углеродного следа
+    carbon_footprint.carbon_footprint_parameters(df)
+    carbon_footprint.cf_Sea_Canal(df)
+    carbon_footprint.cf_low_speed_and_maneuvering(df)
+    carbon_footprint.cf_mooring(df)
+    carbon_footprint.cf_calculation(df)
+
+# Построение карты углеродного следа и судов
     map_building.adding_additional_traces(df, fig)
-    map_building.adding_traces_on_frames(df, pd, frames, datetime)
+    all_results = map_building.adding_traces_on_frames(df, pd, frames, datetime, all_results)
+    map_building.adding_sliders_and_frames(fig, frames)
+    map_building.map_display(fig, token)
 
-    # Гистограмма углеродного следа по дням
+# Гистограмма углеродного следа по дням
+    cf_statistic_bar.bar_display(pd, all_results, datetime, px)
 
-    """carbon_results = pd.DataFrame({'time': all_results['time'],
-                                   'carbon_footprint_NOx': all_results['carbon_footprint_NOx'],
-                                   'carbon_footprint_CH': all_results['carbon_footprint_CH'],
-                                   'carbon_footprint_C': all_results['carbon_footprint_C'],
-                                   'carbon_footprint_CO': all_results['carbon_footprint_CO'],
-                                   'carbon_footprint_SO2': all_results['carbon_footprint_SO2']})
-
-
-    carbon_results['time'] = carbon_results['time'].apply(
-        lambda x: datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d'))
-
-
-    print(carbon_results.head(15))
-    carbon_results['time'] = pd.to_datetime(carbon_results['time'])
-    carbon_results = carbon_results.groupby('time').sum().reset_index()
-
-    carbon_results_melted = carbon_results.melt(id_vars='time', var_name='column', value_name='value')
-
-    print(carbon_results.head(10))
-
-    fig_plot = px.bar(carbon_results_melted,
-                      x='time',
-                      y='value',
-                      color='column',
-                      title='Результаты углеродного следа по дням')"""
-
-
-    sliders = [
-        dict(
-            active=0,
-            pad={"b": 50, "r": 50, "l": 50},
-            steps=[
-                dict(
-                    method="animate",
-                    args=[[frame.name], {"frame": {"duration": 300, "redraw": True}, "mode": "immediate"}],
-                    label=str(frame.name),
-                )
-                for frame in frames
-            ],
-        )
-    ]
-
-    fig.update_layout(
-        legend_orientation="h",
-        updatemenus=[
-            dict(
-                direction="left",
-                pad={"r": 10, "t": 80},
-                x=0.1,
-                xanchor="right",
-                y=0,
-                yanchor="top",
-                showactive=False,
-            )
-        ],
-        sliders=sliders,
-    )
-
-    fig.frames = frames
-
-    map_center = go.layout.mapbox.Center(lat=60, lon=26.5)
-
-    fig.update_layout(mapbox={
-        'accesstoken': token,
-        'style': "outdoors",
-        'center': map_center,
-        'zoom': 6.5},
-        margin={"r": 0, "t": 50, "l": 0, "b": 10})
 
     # График углеродного следа
     #fig_graph
 
     print(df['time'].tail(1))
-    # Отображаем карту
-    fig.show()
-    #fig_plot.show()
+
 
 
 

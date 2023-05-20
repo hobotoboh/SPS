@@ -19,11 +19,10 @@ def adding_additional_traces(df, fig):
         visible=False
     ))
 
-def adding_traces_on_frames(df, pd, frames, datetime):
+def adding_traces_on_frames(df, pd, frames, datetime, all_results):
     unique_times = df['time'].unique()
     unique_times = sorted(unique_times)
     previous_data = pd.DataFrame()
-    all_results = pd.DataFrame()
 
     for time in unique_times:
 
@@ -83,3 +82,51 @@ def adding_traces_on_frames(df, pd, frames, datetime):
         previous_data = combined_df
 
         frames.append(frame)
+
+    return all_results
+
+def adding_sliders_and_frames(fig, frames):
+    sliders = [
+        dict(
+            active=0,
+            pad={"b": 50, "r": 50, "l": 50},
+            steps=[
+                dict(
+                    method="animate",
+                    args=[[frame.name], {"frame": {"duration": 300, "redraw": True}, "mode": "immediate"}],
+                    label=str(frame.name),
+                )
+                for frame in frames
+            ],
+        )
+    ]
+
+    fig.update_layout(
+        legend_orientation="h",
+        updatemenus=[
+            dict(
+                direction="left",
+                pad={"r": 10, "t": 80},
+                x=0.1,
+                xanchor="right",
+                y=0,
+                yanchor="top",
+                showactive=False,
+            )
+        ],
+        sliders=sliders,
+    )
+
+    fig.frames = frames
+
+def map_display(fig, token):
+    map_center = go.layout.mapbox.Center(lat=60, lon=26.5)
+
+    fig.update_layout(mapbox={
+        'accesstoken': token,
+        'style': "outdoors",
+        'center': map_center,
+        'zoom': 6.5},
+        margin={"r": 0, "t": 50, "l": 0, "b": 10})
+
+    fig.show()
