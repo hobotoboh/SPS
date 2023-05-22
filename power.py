@@ -3,18 +3,18 @@ def finding_power(df):
     df['power'] = ''
 
     # мощность главных двигателей при режиме прохода по Морскому каналу
-    df.loc[(df['gt'] < 1000) & (df['latitude'] < 60.03)
-           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 480
-    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000) & (df['latitude'] < 60.03)
-           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 1000
-    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000) & (df['latitude'] < 60.03)
-           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 1700
-    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000) & (df['latitude'] < 60.03)
-           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 3500
-    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000) & (df['latitude'] < 60.03)
-           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 7500
-    df.loc[(df['gt'] > 50000) & (df['latitude'] < 60.03)
-           & (df['latitude'] > 59.84) & (df['longitude'] > 29.4702) & (df['sog'] > 1), 'power'] = 25000
+    df.loc[(df['gt'] < 1000)
+           & (df['latitude'] < 60.01) & (df['longitude'] > 29.7838) & (df['sog'] > 1), 'power'] = 480
+    df.loc[(df['gt'] <= 3000) & (df['gt'] >= 1000)
+           & (df['latitude'] < 60.01) & (df['longitude'] > 29.7838) & (df['sog'] > 1), 'power'] = 1000
+    df.loc[(df['gt'] <= 5000) & (df['gt'] > 3000)
+           & (df['latitude'] < 60.01) & (df['longitude'] > 29.7838) & (df['sog'] > 1), 'power'] = 1700
+    df.loc[(df['gt'] <= 15000) & (df['gt'] > 5000)
+           & (df['latitude'] < 60.01) & (df['longitude'] > 29.7838) & (df['sog'] > 1), 'power'] = 3500
+    df.loc[(df['gt'] <= 50000) & (df['gt'] > 15000)
+           & (df['latitude'] < 60.01) & (df['longitude'] > 29.7838) & (df['sog'] > 1), 'power'] = 7500
+    df.loc[(df['gt'] > 50000)
+           & (df['latitude'] < 60.01) & (df['longitude'] > 29.7838) & (df['sog'] > 1), 'power'] = 25000
 
     # мощность главных двигателей при режиме малого хода
     df.loc[(df['gt'] < 1000) & (df['power'] == '') & (df['sog'] > 1), 'power'] = 150
