@@ -8,6 +8,7 @@ import map_building
 import power
 import carbon_footprint
 import cf_statistic_bar
+import wind_changes
 
 filename = r"A:\Files\Diploma\AIS_10_01_2021.db"
 token = open("key.mapbox_token").read()
@@ -55,6 +56,8 @@ try:
     df['time'] = df['time'].round(0)
     df['time'] = df['time'].multiply(10)
 
+    df_wind = pd.read_csv('output.csv')
+
     # Карта судов и углеродного следа
     data_to_empty_df = {
         'longitude': 0,
@@ -81,6 +84,18 @@ try:
     carbon_footprint.cf_low_speed_and_maneuvering(df)
     carbon_footprint.cf_mooring(df)
     carbon_footprint.cf_calculation(df)
+
+# Определение ближайшей точки с информацией по ветру
+    """epoch_time = datetime.datetime.fromtimestamp(time)
+    time_formatted = epoch_time.strftime('%Y-%m-%d %H:%M')"""
+    df['date'] = df['time'].apply(lambda x: datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d'))
+
+    print(df.columns.tolist())
+    print(df_wind.columns.tolist())
+
+    df['closest_match'] = df.apply(wind_changes.find_closest_match, args=(df_wind,), axis=1)
+    result = df.merge(df_wind, left_on='closest_match', right_index=True, suffixes=('', '_closest'))
+    print(result)
 
 # Построение карты углеродного следа и судов
     map_building.adding_additional_traces(df, fig)
