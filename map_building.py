@@ -53,10 +53,10 @@ def adding_traces_on_frames(df, pd, frames, datetime, all_results):
         ]
 
         dataFootprint = [go.Densitymapbox(
-            lat=all_results['latitude'],
-            lon=all_results['longitude'],
+            lat=all_results['new_latitude'],
+            lon=all_results['new_longitude'],
             z=all_results['carbon_footprint'],
-            radius=10,
+            radius=13,
             showscale=False,
             hovertemplate=(
                     '<b>NOx</b>: %{customdata[0]}<br>' +
@@ -129,4 +129,4 @@ def map_display(fig, token):
         'zoom': 6.5},
         margin={"r": 0, "t": 50, "l": 0, "b": 10})
 
-    fig.show()
+    return fig

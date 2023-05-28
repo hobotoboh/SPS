@@ -21,17 +21,17 @@ def find_closest_match(row, df_wind):
     return closest_index
 
 
-
 def updating_dataframe_with_new_latlon(df):
-    wind_effect_constant = 0.001  # Adjust this value based on your requirements
+    wind_effect_constant = 10.000 # Adjust this value based on your requirements
 
     df['new_latitude'], df['new_longitude'] = zip(*df.apply(
-        lambda row: new_coordinates(row['latitude'], row['longitude'], row['wind_speed'], row['wind_direction'],
+        lambda row: new_coordinates(row['latitude'], row['longitude'],
+                                    row['Wind Speed'], row['Wind Direction'],
                                     wind_effect_constant), axis=1))
 def new_coordinates(lat, lon, wind_speed, wind_direction, wind_effect_constant):
-    R = 6371e3  # Earth radius in meters
+    R = 6371e3  # Радиус Земли в метрах
 
-    bearing = radians(wind_direction) #
+    bearing = radians(wind_direction)
     distance = wind_speed * wind_effect_constant
 
     lat1 = radians(lat)

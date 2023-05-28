@@ -1,14 +1,22 @@
 import plotly.express as px
+import plotly.graph_objs as go
 import pandas as pd
 import sqlite3
 import datetime
+
+import dash
+from dash import dcc
+from dash import html
+from dash.dependencies import Input, Output
 
 import gross_tonnage
 import map_building
 import power
 import carbon_footprint
-import cf_statistic_bar
 import wind_changes
+import cf_statistic_bar
+import cf_comparison_chart
+import correlation_plot
 
 filename = r"A:\Files\Diploma\AIS_10_01_2021.db"
 token = open("key.mapbox_token").read()
@@ -39,6 +47,7 @@ try:
            "Vessels.referencePointB, "
            "Vessels.referencePointC, "
            "Vessels.referencePointD, "
+           "Vessels.shipType, "
            "Vessels.draught, "
            "ais1.sog, "
            "ais1.timestampExternal AS time "
@@ -74,6 +83,8 @@ try:
 
     all_results = pd.DataFrame()
 
+    combined_fig = go.Figure()
+
 # Расчет валовой вместимости и мощности судов
     gross_tonnage.calculation(df)
     power.finding_power(df)
@@ -90,30 +101,61 @@ try:
     time_formatted = epoch_time.strftime('%Y-%m-%d %H:%M')"""
     df['date'] = df['time'].apply(lambda x: datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d'))
 
-    print(df.columns.tolist())
-    print(df_wind.columns.tolist())
-
     df['closest_match'] = df.apply(wind_changes.find_closest_match, args=(df_wind,), axis=1)
-    result = df.merge(df_wind, left_on='closest_match', right_index=True, suffixes=('', '_closest'))
-    print(result)
+    df = df.merge(df_wind[['Wind Direction', 'Wind Speed']], left_on='closest_match',
+                      right_index=True, suffixes=('', '_closest'))
+    print(df.head())
+
+    #print(df[["longitude", "latitude", "new_latitude", "new_longitude"]])
+
+    wind_changes.updating_dataframe_with_new_latlon(df)
 
 # Построение карты углеродного следа и судов
     map_building.adding_additional_traces(df, fig)
     all_results = map_building.adding_traces_on_frames(df, pd, frames, datetime, all_results)
     map_building.adding_sliders_and_frames(fig, frames)
-    map_building.map_display(fig, token)
+
+
+    app = dash.Dash(__name__)
+
+    app.layout = html.Div([
+        dcc.Graph(id='map_display', style={'height': 600}),
+        dcc.Graph(id='bar_chart'),
+        dcc.Graph(id='pie_chart')
+    ])
+
+
+    @app.callback(
+        Output('map_display', 'figure'),
+        Input('map_display', 'id')
+    )
+    def update_map_display(id):
+        figure = map_building.map_display(fig, token)
+        return figure
+
 
 # Гистограмма углеродного следа по дням
-    cf_statistic_bar.bar_display(pd, all_results, datetime, px)
+    @app.callback(
+        Output('bar_chart', 'figure'),
+        Input('bar_chart', 'id')
+    )
+    def update_bar_chart(id):
+        fig = cf_statistic_bar.bar_display(pd, all_results, datetime, px)
+        return fig
 
 
-    # График углеродного следа
-    #fig_graph
+# График сравнения количества углеродного судна в зависимости от судна
+    @app.callback(
+        Output('comparison_chart', 'figure'),
+        Input('comparison_chart', 'id')
+    )
+    def update_comparison_chart(id):
+        fig = cf_comparison_chart.chart_display(all_results)
+        return fig
 
-    print(df['time'].tail(1))
 
-
-
+    if __name__ == '__main__':
+        app.run_server(debug=True)
 
     #map_div = fig.to_html(full_html=False)
 
@@ -129,6 +171,7 @@ try:
         f.write('</html>\n')"""
 
     print("График построен")
+
 
 
 except Exception as exc:
