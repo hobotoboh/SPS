@@ -13,7 +13,8 @@ def chart_display(all_results):
     fig.update_layout(
         title="Углеродный след разных типов судов",
         xaxis_title="Ship Types",
-        yaxis_title="Carbon Footprint"
+        yaxis_title="Carbon Footprint",
+        plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C',
     )
 
     #fig.show()
