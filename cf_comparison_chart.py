@@ -3,7 +3,7 @@ import plotly.graph_objs as go
 def chart_display(all_results):
     all_results['shipType'] = all_results['shipType'].astype(str)
 
-    average_carbon_footprint = all_results.groupby('shipType')['carbon_footprint'].mean()#
+    average_carbon_footprint = all_results.groupby('shipType')['carbon_footprint'].mean()
 
     fig = go.Figure()
 
@@ -11,12 +11,10 @@ def chart_display(all_results):
         fig.add_trace(go.Bar(x=[ship_type], y=[avg_footprint], name=ship_type))
 
     fig.update_layout(
-        title="Углеродный след разных типов судов",
-        xaxis_title="Ship Types",
-        yaxis_title="Carbon Footprint",
+        title="Среднее значение углеродного следа разных типов судов",
+        xaxis_title="Типы судов",
+        yaxis_title="Углеродный след",
         plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C',
     )
-
-    #fig.show()
 
     return fig

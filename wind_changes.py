@@ -20,7 +20,6 @@ def find_closest_match(row, df_wind):
                 closest_index = index
     return closest_index
 
-
 def updating_dataframe_with_new_latlon(df):
     wind_effect_constant = 10.000 # Adjust this value based on your requirements
 

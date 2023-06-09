@@ -20,6 +20,9 @@ def bar_display(pd, all_results, datetime, px):
                       color='column',
                       title='Результаты углеродного следа по дням')
 
-    fig_plot.update_layout(plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C',)
+    fig_plot.update_layout(plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C',
+                           xaxis_title="Дата",
+                           yaxis_title="Углеродный след",
+                           )
 
     return fig_plot
