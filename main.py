@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3
 import datetime
 import requests
+from multiprocessing import Pool
 
 import dash
 from dash import dcc
@@ -29,6 +30,7 @@ base_weather_url = "https://weather.visualcrossing.com/VisualCrossingWebServices
 try:
     app = dash.Dash(__name__)
 
+
     def getting_data(startdate, enddate):
         conn = sqlite3.connect(filename)
 
@@ -39,7 +41,6 @@ try:
 
         startdate = int(startdate.timestamp()) * 1000
         enddate = int(enddate.timestamp()) * 1000
-
 
         sql = ("SELECT DISTINCT ais1.mmsi, "
                "ais1.longitude AS longitude, "
@@ -56,7 +57,15 @@ try:
                "WHERE ais1.mmsi = Vessels.mmsi "
                "AND ais1.timestampExternal >= :startdate "
                "AND ais1.timestampExternal <= :enddate "
-               "GROUP BY ais1.mmsi, strftime('%Y-%m-%d %H', datetime(ais1.timestampExternal/1000, 'unixepoch', 'localtime')) "
+               "AND ais1.longitude IS NOT NULL "
+               "AND ais1.latitude IS NOT NULL "
+               "AND Vessels.referencePointA IS NOT NULL "
+               "AND Vessels.referencePointB IS NOT NULL "
+               "AND Vessels.referencePointC IS NOT NULL "
+               "AND Vessels.referencePointD IS NOT NULL "
+               "AND Vessels.shipType IS NOT NULL "
+               "GROUP BY ais1.mmsi, strftime('%Y-%m-%d %H', datetime(ais1.timestampExternal/1000, 'unixepoch', "
+               "'localtime'))"
                "LIMIT 1000")
         print('Получение данных БД...')
 
@@ -94,6 +103,7 @@ try:
                 rows.append(row)
 
         df_wind = pd.DataFrame(rows, columns=['Date', 'Wind Direction', 'Wind Speed', 'Latitude', 'Longitude'])
+        #df_wind = pd.read_csv('A:/Files/Diploma/output.csv')
 
         print('Проведение расчетов...')
         # Расчет валовой вместимости и мощности судов

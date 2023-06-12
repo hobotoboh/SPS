@@ -20,13 +20,16 @@ def adding_additional_traces(df, fig):
     ))
 
 def adding_traces_on_frames(df, pd, frames, datetime, all_results):
-    unique_times = df['time'].unique()
+    df['datetime'] = df['time'].apply(lambda x: datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H'))
+    df['hh'] = df['datetime'].apply(lambda x: int(datetime.datetime.strptime(x, '%Y-%m-%d %H').timestamp()))
+
+    unique_times = df['hh'].unique()
     unique_times = sorted(unique_times)
     previous_data = pd.DataFrame()
 
-    for time in unique_times:
+    for hh in unique_times:
 
-        filtered_df = df[df['time'] == time]
+        filtered_df = df[df['hh'] == hh]
 
         if not previous_data.empty:
             no_future_time_options = previous_data.loc[~previous_data['mmsi'].isin(filtered_df['mmsi'])]
@@ -56,7 +59,7 @@ def adding_traces_on_frames(df, pd, frames, datetime, all_results):
             lat=all_results['new_latitude'],
             lon=all_results['new_longitude'],
             z=all_results['carbon_footprint'],
-            radius=13,
+            radius=10,
             showscale=False,
             hovertemplate=(
                     '<b>NOx</b>: %{customdata[0]}<br>' +
@@ -71,7 +74,7 @@ def adding_traces_on_frames(df, pd, frames, datetime, all_results):
                            'carbon_footprint_SO2', 'carbon_footprint']].values,
         )]
 
-        epoch_time = datetime.datetime.fromtimestamp(time)
+        epoch_time = datetime.datetime.fromtimestamp(hh)
         time_formatted = epoch_time.strftime('%Y-%m-%d %H:%M')
 
         frame = go.Frame(

@@ -14,6 +14,7 @@ def percentage_mmsi(px, df):
 
     fig = px.pie(mmsi_counts, values='count', names='mmsi')
 
-    fig.update_layout(plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C',)
+    fig.update_layout(plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C', showlegend=False)
+    fig.update_traces(textinfo='none')
 
     return fig

@@ -1,5 +1,4 @@
 import plotly.graph_objects as go
-import numpy as np
 
 def correlation_power(pd, df):
     carbon_results = pd.DataFrame({'power': df['power'],
