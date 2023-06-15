@@ -64,9 +64,7 @@ try:
                "AND Vessels.referencePointC IS NOT NULL "
                "AND Vessels.referencePointD IS NOT NULL "
                "AND Vessels.shipType IS NOT NULL "
-               "GROUP BY ais1.mmsi, strftime('%Y-%m-%d %H', datetime(ais1.timestampExternal/1000, 'unixepoch', "
-               "'localtime'))"
-               "LIMIT 1000")
+               "LIMIT 100")
         print('Получение данных БД...')
 
         df = pd.read_sql(sql, conn, params={"startdate": startdate, "enddate": enddate})
