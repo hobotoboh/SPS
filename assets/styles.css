@@ -1,0 +1,92 @@
+body {
+    background-color: #D2B48C;
+}
+h1, h2, h3, h4, h5, h6 {
+    color: black;
+	text-align: center;
+	margin-bottom: 30px;
+}
+
+h2 {
+	font-size: 26px;
+}
+
+.graphs {
+    height: 60px;
+    line-height: 60px;
+    border-bottom: thin lightgrey solid;
+}
+
+.date-picker {
+	text-align: center;
+}
+
+button {
+	margin-left: 20px;
+	font-size: 20px;
+	width: 200px;
+	height: 35px;
+}
+
+.data-viborki {
+	margin-right: 20px;
+	font-size: 25px;
+}
+
+.creator{
+	margin-bottom: 10px;
+    text-align: center;
+    margin: auto
+}
+
+.database-review{
+	width: 35%; 
+	display: inline-block;
+	
+}
+
+.database-review-records{
+	width: 30%; 
+	display: inline-block;
+	
+}
+
+.database-review-head{
+	height:25px;
+	border: 1px;
+}
+
+.database-review-body{
+	height:400px;
+}
+
+.database-review-body-records{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 10px;
+}
+
+#total_number_of_records{
+	font-size: 80px;
+	padding: 10px;
+	margin-top: 80px;
+}
+
+.correlation-plots{
+	width: 49.9%;
+	display: inline-block;
+
+}
+
+.cf_bar_chart{
+	width: 60%;
+	display: inline-block;
+
+}
+
+.cf_radar_chart{
+	width: 40%;
+	display: inline-block;
+
+}
