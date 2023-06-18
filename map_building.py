@@ -130,6 +130,6 @@ def map_display(fig, token):
         'style': "outdoors",
         'center': map_center,
         'zoom': 6.5},
-        plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C',
+        plot_bgcolor='#FFDAB9', paper_bgcolor='#FFDAB9',
         margin={"r": 0, "t": 50, "l": 0, "b": 10})
     return fig

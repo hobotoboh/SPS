@@ -14,7 +14,7 @@ def chart_display(all_results):
         title="Среднее значение углеродного следа разных типов судов",
         xaxis_title="Типы судов",
         yaxis_title="Углеродный след",
-        plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C',
+        plot_bgcolor='#FFDAB9', paper_bgcolor='#FFDAB9',
     )
 
     return fig

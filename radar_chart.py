@@ -15,7 +15,7 @@ def radar_display(df, ):
             radialaxis=dict(visible=True),
             angularaxis=dict(direction="clockwise"),),
         showlegend=False,
-        plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C',
+        plot_bgcolor='#FFDAB9', paper_bgcolor='#FFDAB9',
         title={
             'text': "Углеродный след при различных направлениях ветра",
             'y': 0.95,

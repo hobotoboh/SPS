@@ -33,7 +33,7 @@ def correlation_power(pd, df):
                       '<b>%{customdata[1]}</b>: %{customdata[2]}<br>'),
         customdata=carbon_results_melted[['power', 'column', 'value']]
     ))
-    fig.update_layout(plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C',
+    fig.update_layout(plot_bgcolor='#FFDAB9', paper_bgcolor='#FFDAB9',
                       title='Связь между мощностью и углеродным следом')
 
     return fig
@@ -70,7 +70,7 @@ def correlation_gt(pd, df):
                        '<b>%{customdata[1]}</b>: %{customdata[2]}<br>'),
         customdata=carbon_results_melted[['gt', 'column', 'value']]
     ))
-    fig.update_layout(plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C',
+    fig.update_layout(plot_bgcolor='#FFDAB9', paper_bgcolor='#FFDAB9',
                       title='Связь между валовой вместимостью и углеродным следом')
 
     return fig

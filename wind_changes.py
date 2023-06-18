@@ -21,7 +21,7 @@ def find_closest_match(row, df_wind):
     return closest_index
 
 def updating_dataframe_with_new_latlon(df):
-    wind_effect_constant = 10.000 # Adjust this value based on your requirements
+    wind_effect_constant = 10.000
 
     df['new_latitude'], df['new_longitude'] = zip(*df.apply(
         lambda row: new_coordinates(row['latitude'], row['longitude'],

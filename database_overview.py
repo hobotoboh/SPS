@@ -4,17 +4,16 @@ def percentage_days(px, df, pd):
 
     fig = px.pie(day_counts, values='count', names='date')
 
-    fig.update_layout(plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C',)
+    fig.update_layout(plot_bgcolor='#FFDAB9', paper_bgcolor='#FFDAB9',)
 
     return fig
 
 def percentage_mmsi(px, df):
 
-    mmsi_counts = df.groupby('mmsi').size().reset_index(name='count')
+    shipTypeCounts = df.groupby('shipType').size().reset_index(name='count')
 
-    fig = px.pie(mmsi_counts, values='count', names='mmsi')
+    fig = px.pie(shipTypeCounts, values='count', names='shipType')
 
-    fig.update_layout(plot_bgcolor='#D2B48C', paper_bgcolor='#D2B48C', showlegend=False)
-    fig.update_traces(textinfo='none')
+    fig.update_layout(plot_bgcolor='#FFDAB9', paper_bgcolor='#FFDAB9')
 
     return fig

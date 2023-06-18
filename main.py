@@ -3,7 +3,6 @@ import pandas as pd
 import sqlite3
 import datetime
 import requests
-from multiprocessing import Pool
 
 import dash
 from dash import dcc
@@ -57,17 +56,15 @@ try:
                "WHERE ais1.mmsi = Vessels.mmsi "
                "AND ais1.timestampExternal >= :startdate "
                "AND ais1.timestampExternal <= :enddate "
-               "AND ais1.longitude IS NOT NULL "
-               "AND ais1.latitude IS NOT NULL "
-               "AND Vessels.referencePointA IS NOT NULL "
-               "AND Vessels.referencePointB IS NOT NULL "
-               "AND Vessels.referencePointC IS NOT NULL "
-               "AND Vessels.referencePointD IS NOT NULL "
-               "AND Vessels.shipType IS NOT NULL "
-               "LIMIT 100")
+               "GROUP BY ais1.mmsi, strftime('%Y-%m-%d %H', datetime(ais1.timestampExternal/1000, 'unixepoch', "
+           "'localtime'))"
+               "LIMIT 3000")
         print('Получение данных БД...')
 
         df = pd.read_sql(sql, conn, params={"startdate": startdate, "enddate": enddate})
+        df = df[(df.referencePointA != 0) & (df.referencePointB != 0) & (df.referencePointC != 0) & (
+                    df.referencePointD != 0)]
+
 
         print('Получение данных погоды...')
 
@@ -136,8 +133,6 @@ try:
         'latitude': 0,
     }
 
-    cache_df = pd.DataFrame(columns=['key', 'data'])
-
     app.layout = html.Div([
         dcc.Store(id='data_store', data=None),
         dcc.Store(id='all_results_store'),
@@ -158,8 +153,8 @@ try:
         ),
         dcc.Graph(id='map_display', figure={
             'layout': {
-                'plot_bgcolor': '#D2B48C',
-                'paper_bgcolor': '#D2B48C',
+                'plot_bgcolor': '#FFDAB9',
+                'paper_bgcolor': '#FFDAB9',
             }}, style={'height': 700}),
 
         html.Div([
@@ -168,8 +163,8 @@ try:
             html.Div([html.H2("Cоотношение записей по дням", className='database-review-head'),
                       dcc.Graph(id='percentage_days', figure={
                           'layout': {
-                              'plot_bgcolor': '#D2B48C',
-                              'paper_bgcolor': '#D2B48C',
+                              'plot_bgcolor': '#FFDAB9',
+                              'paper_bgcolor': '#FFDAB9',
                           }}, className='database-review-body'), ],
                      className='database-review'),
             html.Div([html.H2("Общее число полученных записей", className='database-review-head'),
@@ -178,8 +173,8 @@ try:
             html.Div([html.H2("Cоотношение записей по кораблям", className='database-review-head'),
                       dcc.Graph(id='percentage_mmsi', figure={
                           'layout': {
-                              'plot_bgcolor': '#D2B48C',
-                              'paper_bgcolor': '#D2B48C',
+                              'plot_bgcolor': '#FFDAB9',
+                              'paper_bgcolor': '#FFDAB9',
                           }}, className='database-review-body'), ],
                      className='database-review'),
         ]),
@@ -192,29 +187,29 @@ try:
         html.Div([
             dcc.Graph(id='bar_chart', figure={
                 'layout': {
-                    'plot_bgcolor': '#D2B48C',
-                    'paper_bgcolor': '#D2B48C',
+                    'plot_bgcolor': '#FFDAB9',
+                    'paper_bgcolor': '#FFDAB9',
                 }}, className='cf_bar_chart'),
             dcc.Graph(id='radar_chart', figure={
                 'layout': {
-                    'plot_bgcolor': '#D2B48C',
-                    'paper_bgcolor': '#D2B48C',
+                    'plot_bgcolor': '#FFDAB9',
+                    'paper_bgcolor': '#FFDAB9',
                 }}, className='cf_radar_chart')
         ], ),
         dcc.Graph(id='comparison_chart', figure={
             'layout': {
-                'plot_bgcolor': '#D2B48C',
-                'paper_bgcolor': '#D2B48C',
+                'plot_bgcolor': '#FFDAB9',
+                'paper_bgcolor': '#FFDAB9',
             }}),
         html.Div([dcc.Graph(id='correlation_gt_plot', figure={
             'layout': {
-                'plot_bgcolor': '#D2B48C',
-                'paper_bgcolor': '#D2B48C',
+                'plot_bgcolor': '#FFDAB9',
+                'paper_bgcolor': '#FFDAB9',
             }}, className='correlation-plots'),
                   dcc.Graph(id='correlation_power_plot', figure={
                       'layout': {
-                          'plot_bgcolor': '#D2B48C',
-                          'paper_bgcolor': '#D2B48C',
+                          'plot_bgcolor': '#FFDAB9',
+                          'paper_bgcolor': '#FFDAB9',
                       }}, className='correlation-plots'),
                   ], )
     ],
@@ -420,7 +415,7 @@ try:
 
 
     if __name__ == '__main__':
-        app.run_server(debug=True)
+        app.run_server(debug=False)
 
 except Exception as exc:
     print(exc)
